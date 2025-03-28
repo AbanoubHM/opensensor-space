@@ -1,56 +1,175 @@
 ---
-title: Welcome to Evidence
+title: My Weather Station Dashboard
 ---
 
-<Details title='How to edit this page'>
-
-  This page can be found in your project at `/pages/index.md`. Make a change to the markdown file and save it to see the change take effect in your browser.
+<Details title='About this dashboard'>
+  This dashboard analyzes weather station data using Evidence.dev. You can select the year, month, and day to view specific data points from station 01.
 </Details>
 
-```sql categories
+<Dropdown name=year title="Select Year">
+    <DropdownOption value=2025 valueLabel="2025"/>
+    <DropdownOption value=2024 valueLabel="2024"/>
+</Dropdown>
+
+<Dropdown name=month title="Select Month">
+    <DropdownOption value="03" valueLabel="March" />
+    <DropdownOption value="02" valueLabel="February"/>
+    <DropdownOption value="01" valueLabel="January"/>
+    <DropdownOption value="04" valueLabel="April"/>
+    <DropdownOption value="05" valueLabel="May"/>
+    <DropdownOption value="06" valueLabel="June"/>
+    <DropdownOption value="07" valueLabel="July"/>
+    <DropdownOption value="08" valueLabel="August"/>
+    <DropdownOption value="09" valueLabel="September"/>
+    <DropdownOption value="10" valueLabel="October"/>
+    <DropdownOption value="11" valueLabel="November"/>
+    <DropdownOption value="12" valueLabel="December"/>
+</Dropdown>
+
+<Dropdown name=day title="Select Day">
+    <DropdownOption value="27" valueLabel="27"/>
+    <DropdownOption value="01" valueLabel="01"/>
+    <DropdownOption value="02" valueLabel="02"/>
+    <DropdownOption value="03" valueLabel="03"/>
+    <DropdownOption value="04" valueLabel="04"/>
+    <DropdownOption value="05" valueLabel="05"/>
+    <DropdownOption value="06" valueLabel="06"/>
+    <DropdownOption value="07" valueLabel="07"/>
+    <DropdownOption value="08" valueLabel="08"/>
+    <DropdownOption value="09" valueLabel="09"/>
+    <DropdownOption value="10" valueLabel="10"/>
+    <DropdownOption value="11" valueLabel="11"/>
+    <DropdownOption value="12" valueLabel="12"/>
+    <DropdownOption value="13" valueLabel="13"/>
+    <DropdownOption value="14" valueLabel="14"/>
+    <DropdownOption value="15" valueLabel="15"/>
+    <DropdownOption value="16" valueLabel="16"/>
+    <DropdownOption value="17" valueLabel="17"/>
+    <DropdownOption value="18" valueLabel="18"/>
+    <DropdownOption value="19" valueLabel="19"/>
+    <DropdownOption value="20" valueLabel="20"/>
+    <DropdownOption value="21" valueLabel="21"/>
+    <DropdownOption value="22" valueLabel="22"/>
+    <DropdownOption value="23" valueLabel="23"/>
+    <DropdownOption value="24" valueLabel="24"/>
+    <DropdownOption value="25" valueLabel="25"/>
+    <DropdownOption value="26" valueLabel="26"/>
+    <DropdownOption value="28" valueLabel="28"/>
+    <DropdownOption value="29" valueLabel="29"/>
+    <DropdownOption value="30" valueLabel="30"/>
+    <DropdownOption value="31" valueLabel="31"/>
+</Dropdown>
+
+# Weather Station Data: {inputs.year.value}-{inputs.month.value}-{inputs.day.value}
+
+## Weather Station Information
+
+Weather station is located at coordinates: 30.0626, 31.4916
+
+## Weather Statistics Summary
+
+```sql summary_stats
   select
-      category
-  from needful_things.orders
-  group by category
+    round(min(temperature), 2) as min_temp,
+    round(max(temperature), 2) as max_temp,
+    round(avg(temperature), 2) as avg_temp,
+    round(min(humidity), 2) as min_humidity,
+    round(max(humidity), 2) as max_humidity,
+    round(avg(humidity), 2) as avg_humidity,
+    round(min(pressure), 2) as min_pressure,
+    round(max(pressure), 2) as max_pressure,
+    round(avg(pressure), 2) as avg_pressure
+  from read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/archive_daily/station=01/year=${inputs.year.value}/month=${inputs.month.value}/day=${inputs.day.value}/aggregated_${inputs.year.value}${inputs.month.value}${inputs.day.value}.parquet')
 ```
 
-<Dropdown data={categories} name=category value=category>
-    <DropdownOption value="%" valueLabel="All Categories"/>
-</Dropdown>
+<DataTable
+  data={summary_stats}
+  title="Weather Statistics Summary"
+/>
 
-<Dropdown name=year>
-    <DropdownOption value=% valueLabel="All Years"/>
-    <DropdownOption value=2019/>
-    <DropdownOption value=2020/>
-    <DropdownOption value=2021/>
-</Dropdown>
+## Temperature Distribution
 
-```sql orders_by_category
-  select 
-      date_trunc('month', order_datetime) as month,
-      sum(sales) as sales_usd,
-      category
-  from needful_things.orders
-  where category like '${inputs.category.value}'
-  and date_part('year', order_datetime) like '${inputs.year.value}'
-  group by all
-  order by sales_usd desc
+```sql temp_data
+  select
+    temperature,
+    count(*) as count
+  from read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/archive_daily/station=01/year=${inputs.year.value}/month=${inputs.month.value}/day=${inputs.day.value}/aggregated_${inputs.year.value}${inputs.month.value}${inputs.day.value}.parquet')
+  group by temperature
+  order by temperature
 ```
 
 <BarChart
-    data={orders_by_category}
-    title="Sales by Month, {inputs.category.label}"
-    x=month
-    y=sales_usd
-    series=category
+  data={temp_data}
+  x=temperature
+  y=count
+  title="Temperature Distribution"
+  xAxisTitle="Temperature (°C)"
+  yAxisTitle="Count"
 />
 
-## What's Next?
-- [Connect your data sources](settings)
-- Edit/add markdown files in the `pages` folder
-- Deploy your project with [Evidence Cloud](https://evidence.dev/cloud)
+## Humidity Distribution
 
-## Get Support
-- Message us on [Slack](https://slack.evidence.dev/)
-- Read the [Docs](https://docs.evidence.dev/)
-- Open an issue on [Github](https://github.com/evidence-dev/evidence)
+```sql humidity_data
+  select
+    humidity,
+    count(*) as count
+  from read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/archive_daily/station=01/year=${inputs.year.value}/month=${inputs.month.value}/day=${inputs.day.value}/aggregated_${inputs.year.value}${inputs.month.value}${inputs.day.value}.parquet')
+  group by humidity
+  order by humidity
+```
+
+<BarChart
+  data={humidity_data}
+  x=humidity
+  y=count
+  title="Humidity Distribution"
+  xAxisTitle="Humidity (%)"
+  yAxisTitle="Count"
+/>
+
+## Temperature vs Humidity
+
+```sql temp_vs_humidity
+  select 
+    temperature,
+    humidity
+  from read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/archive_daily/station=01/year=${inputs.year.value}/month=${inputs.month.value}/day=${inputs.day.value}/aggregated_${inputs.year.value}${inputs.month.value}${inputs.day.value}.parquet')
+  limit 1000
+```
+
+<ScatterPlot
+  data={temp_vs_humidity}
+  x=temperature
+  y=humidity
+  xAxisTitle="Temperature (°C)"
+  yAxisTitle="Humidity (%)"
+  title="Temperature vs Humidity Correlation"
+/>
+
+## Raw Data Sample
+
+```sql raw_data
+  select
+    timestamp::string as timestamp,
+    temperature,
+    humidity,
+    pressure
+  from read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/archive_daily/station=01/year=${inputs.year.value}/month=${inputs.month.value}/day=${inputs.day.value}/aggregated_${inputs.year.value}${inputs.month.value}${inputs.day.value}.parquet')
+  limit 50
+```
+
+<DataTable 
+  data={raw_data} 
+  title="Sample Weather Data"
+  search=true
+  pagination=true
+/>
+
+<Details title='About The Measurements'>
+
+## Measurement Explanations
+- **Temperature**: Ambient temperature in degrees Celsius
+- **Humidity**: Relative humidity as a percentage
+- **Pressure**: Atmospheric pressure in hectopascals (hPa)
+
+</Details>
