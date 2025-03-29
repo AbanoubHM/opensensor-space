@@ -29,11 +29,11 @@ The easiest way to get started is using the [VS Code Extension](https://marketpl
 ## Get Started using the CLI
 
 ```bash
-npx degit evidence-dev/template my-project
-cd my-project 
-npm install 
-npm run sources
-npm run dev 
+bunx degit evidence-dev/template my-project
+cd my-project
+bun install
+bun run sources
+bun run dev
 ```
 
 Check out the docs for [alternative install methods](https://docs.evidence.dev/getting-started/install-evidence) including Docker, Github Codespaces, and alongside dbt.
