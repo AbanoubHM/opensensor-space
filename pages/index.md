@@ -7,7 +7,7 @@ hide_title: true
 
 # My DIY Weather Station: A Cloud-Native Approach
 
-## The Journey
+## Traditional Way
 
 When I first built my DIY weather station last year early (2024), I followed a traditional approach - a Raspberry Pi Zero W with an Enviro+ sensor connected to an Intel NUC that served as a data hub. The NUC collected sensor data and stored it in a TimeScaleDB database. It worked, but it wasn't as elegant or efficient as it could be. If the hub disconnected for any reason - like a power outage - I lost all the readings and measurements sent via MQTT from my sensors.
 
