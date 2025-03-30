@@ -31,19 +31,29 @@ Weather station is located at coordinates: 30.0626, 31.4916
 
 ## Weather Statistics Summary
 
+```sql main_data
+-- Get all the base data we need in a single scan
+select
+  timestamp,
+  temperature,
+  humidity,
+  pressure
+from station_01
+where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}'
+```
+
 ```sql summary_stats
-  select
-    round(min(temperature), 2) as min_temp,
-    round(max(temperature), 2) as max_temp,
-    round(avg(temperature), 2) as avg_temp,
-    round(min(humidity), 2) as min_humidity,
-    round(max(humidity), 2) as max_humidity,
-    round(avg(humidity), 2) as avg_humidity,
-    round(min(pressure), 2) as min_pressure,
-    round(max(pressure), 2) as max_pressure,
-    round(avg(pressure), 2) as avg_pressure
-  from station_01
-  where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}'
+select
+  round(min(temperature), 2) as min_temp,
+  round(max(temperature), 2) as max_temp,
+  round(avg(temperature), 2) as avg_temp,
+  round(min(humidity), 2) as min_humidity,
+  round(max(humidity), 2) as max_humidity,
+  round(avg(humidity), 2) as avg_humidity,
+  round(min(pressure), 2) as min_pressure,
+  round(max(pressure), 2) as max_pressure,
+  round(avg(pressure), 2) as avg_pressure
+from ${main_data}
 ```
 
 <DataTable
@@ -52,59 +62,42 @@ Weather station is located at coordinates: 30.0626, 31.4916
 />
 
 ```sql weather_data
-  select
-    timestamp,
-    temperature,
-    humidity
-  from station_01
-  where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}'
-  order by timestamp
+select
+  timestamp,
+  temperature,
+  humidity
+from ${main_data}
+order by timestamp
 ```
 
 ```sql temp_extremes
-  select
-    timestamp,
-    temperature,
-    case
-      when temperature = (select max(temperature) from station_01 
-                          where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}')
-      then 'Highest: ' || round(temperature, 1) || '°C'
-      when temperature = (select min(temperature) from station_01 
-                          where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}')
-      then 'Lowest: ' || round(temperature, 1) || '°C'
-    end as label
-  from station_01
-  where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}'
-    and (
-      temperature = (select max(temperature) from station_01 
-                     where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}')
-      or
-      temperature = (select min(temperature) from station_01 
-                     where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}')
-    )
+select
+  timestamp,
+  temperature,
+  case
+    when temperature = (select max(temperature) from ${main_data})
+    then 'Highest: ' || round(temperature, 1) || '°C'
+    when temperature = (select min(temperature) from ${main_data})
+    then 'Lowest: ' || round(temperature, 1) || '°C'
+  end as label
+from ${main_data}
+where temperature = (select max(temperature) from ${main_data})
+   or temperature = (select min(temperature) from ${main_data})
 ```
 
 ```sql humidity_extremes
-  select
-    timestamp,
-    humidity,
-    case
-      when humidity = (select max(humidity) from station_01 
-                       where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}')
-      then 'Highest: ' || round(humidity, 1) || '%'
-      when humidity = (select min(humidity) from station_01 
-                       where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}')
-      then 'Lowest: ' || round(humidity, 1) || '%'
-    end as label
-  from station_01
-  where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}'
-    and (
-      humidity = (select max(humidity) from station_01 
-                  where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}')
-      or
-      humidity = (select min(humidity) from station_01 
-                  where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}')
-    )
+select
+  timestamp,
+  humidity,
+  case
+    when humidity = (select max(humidity) from ${main_data})
+    then 'Highest: ' || round(humidity, 1) || '%'
+    when humidity = (select min(humidity) from ${main_data})
+    then 'Lowest: ' || round(humidity, 1) || '%'
+  end as label
+from ${main_data}
+where humidity = (select max(humidity) from ${main_data})
+   or humidity = (select min(humidity) from ${main_data})
 ```
 
 ## Temperature Over Time
@@ -191,30 +184,28 @@ Weather station is located at coordinates: 30.0626, 31.4916
 ## Temperature and Humidity Stacked View
 
 ```sql stacked_weather_data
-  select
-    timestamp,
-    temperature,
-    humidity,
-    'Temperature' as metric_type
-  from station_01
-  where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}'
-  
-  UNION ALL
-  
-  select
-    timestamp,
-    humidity as temperature,
-    humidity,
-    'Humidity' as metric_type
-  from station_01
-  where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}'
-  order by timestamp, metric_type
+-- Temperature data
+select
+  timestamp,
+  temperature as value,
+  'Temperature' as metric_type
+from ${main_data}
+
+UNION ALL
+
+-- Humidity data
+select
+  timestamp,
+  humidity as value,
+  'Humidity' as metric_type
+from ${main_data}
+order by timestamp, metric_type
 ```
 
 <LineChart
   data={stacked_weather_data}
   x=timestamp
-  y=temperature
+  y=value
   series=metric_type
   title="Temperature and Humidity Stacked View"
   subtitle="Combined view showing both metrics"
@@ -235,19 +226,18 @@ Weather station is located at coordinates: 30.0626, 31.4916
 ## Temperature vs Humidity
 
 ```sql temp_vs_humidity
-  select 
-    date_trunc('hour', timestamp) as hour,
-    extract('hour' from timestamp) as hour_of_day,
-    date_trunc('day', timestamp)::string as day,
-    avg(temperature) as temperature,
-    avg(humidity) as humidity
-  from station_01
-  where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}'
-  group by 
-    date_trunc('hour', timestamp),
-    extract('hour' from timestamp),
-    date_trunc('day', timestamp)::string
-  order by hour
+select 
+  date_trunc('hour', timestamp) as hour,
+  extract('hour' from timestamp) as hour_of_day,
+  date_trunc('day', timestamp)::string as day,
+  avg(temperature) as temperature,
+  avg(humidity) as humidity
+from ${main_data}
+group by 
+  date_trunc('hour', timestamp),
+  extract('hour' from timestamp),
+  date_trunc('day', timestamp)::string
+order by hour
 ```
 
 ```sql regression
