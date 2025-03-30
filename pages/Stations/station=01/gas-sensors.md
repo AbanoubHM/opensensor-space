@@ -2,6 +2,8 @@
 title: Gas Sensor Readings
 ---
 
+<LastRefreshed/>
+
 <Details title='About this dashboard'>
   This dashboard analyzes gas sensor readings (Oxidised, Reducing, NH3) from My DIY weather station. Units are typically kΩ (kiloohms), representing sensor resistance. Lower values often indicate higher gas concentrations, but refer to sensor datasheets for specific interpretations. You can select a date range to view specific data.
 </Details>

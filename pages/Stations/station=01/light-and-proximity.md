@@ -1,6 +1,7 @@
 ---
 title: Light and Proximity
 ---
+<LastRefreshed/>
 
 <Details title='About this dashboard'>
   This dashboard analyzes light (Lux) and proximity sensor readings from My DIY weather station. You can select a date range to view specific data.

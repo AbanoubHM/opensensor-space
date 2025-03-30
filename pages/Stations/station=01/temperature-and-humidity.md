@@ -1,6 +1,9 @@
 ---
 title: Temperature and Humidity
 ---
+
+<LastRefreshed/>
+
 <Details title='About this dashboard'>
   This dashboard analyzes My DIY weather station data (Cloud Native way). You can select a date range to view specific data.
 </Details>

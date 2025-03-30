@@ -96,7 +96,7 @@ This insight led me to reimagine my weather station with a truly cloud-native ap
     url="/image.png" 
     description="My DIY weather station cloud-native diagram"
     border=true 
-    class="p-4"
+    class="p-2"
 />
 
 ## The Cloud-Native Solution

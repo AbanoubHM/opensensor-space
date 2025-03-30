@@ -1,8 +1,9 @@
 ---
 title: Near Real-Time Weather Data
+hide_title: true
 ---
-<LastRefreshed/>
-# Station 01 - Near Real-Time Weather Data
+
+# Near Real-Time Weather Data using latest uploaded parquet file.
 
 <small>*All metrics represent averages from the last 5 minutes of data collection at this station.*</small>
 
