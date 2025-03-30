@@ -1,5 +1,5 @@
 ```sql near_real_time_data
-SELECT * FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=2025/month=03/day=30/data_0240.parquet')
+SELECT * FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=${new Date().getUTCFullYear()}/month=${String(new Date().getUTCMonth() + 1).padStart(2, '0')}/day=${String(new Date().getUTCDate()).padStart(2, '0')}/data_${String(new Date().getUTCHours()).padStart(2, '0')}${String(Math.floor(new Date().getUTCMinutes() / 10) * 10).padStart(2, '0')}.parquet')
 ```
 
 ```sql temperature_stats
@@ -8,7 +8,7 @@ SELECT
   MIN(temperature) as min_temp,
   MAX(temperature) as max_temp,
   AVG(raw_temperature) as avg_raw_temp
-FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=2025/month=03/day=30/data_0240.parquet')
+FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=${new Date().getUTCFullYear()}/month=${String(new Date().getUTCMonth() + 1).padStart(2, '0')}/day=${String(new Date().getUTCDate()).padStart(2, '0')}/data_${String(new Date().getUTCHours()).padStart(2, '0')}${String(Math.floor(new Date().getUTCMinutes() / 10) * 10).padStart(2, '0')}.parquet')
 ```
 
 ```sql humidity_stats
@@ -16,7 +16,7 @@ SELECT
   AVG(humidity) as avg_humidity,
   MIN(humidity) as min_humidity,
   MAX(humidity) as max_humidity
-FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=2025/month=03/day=30/data_0240.parquet')
+FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=${new Date().getUTCFullYear()}/month=${String(new Date().getUTCMonth() + 1).padStart(2, '0')}/day=${String(new Date().getUTCDate()).padStart(2, '0')}/data_${String(new Date().getUTCHours()).padStart(2, '0')}${String(Math.floor(new Date().getUTCMinutes() / 10) * 10).padStart(2, '0')}.parquet')
 ```
 
 ```sql pressure_stats
@@ -24,7 +24,7 @@ SELECT
   AVG(pressure) as avg_pressure,
   MIN(pressure) as min_pressure,
   MAX(pressure) as max_pressure
-FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=2025/month=03/day=30/data_0240.parquet')
+FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=${new Date().getUTCFullYear()}/month=${String(new Date().getUTCMonth() + 1).padStart(2, '0')}/day=${String(new Date().getUTCDate()).padStart(2, '0')}/data_${String(new Date().getUTCHours()).padStart(2, '0')}${String(Math.floor(new Date().getUTCMinutes() / 10) * 10).padStart(2, '0')}.parquet')
 ```
 
 ```sql air_quality_stats
@@ -38,7 +38,7 @@ SELECT
   AVG(nh3) as avg_nh3,
   MIN(nh3) as min_nh3,
   MAX(nh3) as max_nh3
-FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=2025/month=03/day=30/data_0240.parquet')
+FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=${new Date().getUTCFullYear()}/month=${String(new Date().getUTCMonth() + 1).padStart(2, '0')}/day=${String(new Date().getUTCDate()).padStart(2, '0')}/data_${String(new Date().getUTCHours()).padStart(2, '0')}${String(Math.floor(new Date().getUTCMinutes() / 10) * 10).padStart(2, '0')}.parquet')
 ```
 
 ```sql light_stats
@@ -47,7 +47,7 @@ SELECT
   MAX(lux) as max_lux,
   AVG(proximity) as avg_proximity,
   MAX(proximity) as max_proximity
-FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=2025/month=03/day=30/data_0240.parquet')
+FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=${new Date().getUTCFullYear()}/month=${String(new Date().getUTCMonth() + 1).padStart(2, '0')}/day=${String(new Date().getUTCDate()).padStart(2, '0')}/data_${String(new Date().getUTCHours()).padStart(2, '0')}${String(Math.floor(new Date().getUTCMinutes() / 10) * 10).padStart(2, '0')}.parquet')
 ```
 
 # Station 01 - Near Real-Time Weather Data
