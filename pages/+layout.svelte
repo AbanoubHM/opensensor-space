@@ -12,6 +12,7 @@
   hideBreadcrumbs={true}
   githubRepo="https://github.com/Youssef-Harby"
   xProfile="https://x.com/youssef_7arby"
+  blueskyProfile="https://bsky.app/profile/youssefharby.com"
 >
   <slot slot="content" />
 </EvidenceDefaultLayout>
