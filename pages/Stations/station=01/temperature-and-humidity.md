@@ -3,7 +3,7 @@ title: Temperature and Humidity
 ---
 
 <Details title='About this dashboard'>
-  This dashboard analyzes My DIY weather station data. You can select a date range to view specific data points from station 01.
+  This dashboard analyzes My DIY weather station data (Cloud Native way). You can select a date range to view specific data.
 </Details>
 
 ```sql date_range_data
@@ -22,12 +22,6 @@ from station_01
   presetRanges={['Last 7 Days', 'Last 30 Days', 'Month to Date', 'Year to Date', 'All Time']}
   defaultValue={'Last 7 Days'}
 />
-
-# Weather Station Data: {inputs.date_filter.start} to {inputs.date_filter.end}
-
-## Weather Station Information
-
-Weather station is located at coordinates: 30.0626, 31.4916
 
 ## Weather Statistics Summary
 
