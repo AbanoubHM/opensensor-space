@@ -41,7 +41,8 @@ SELECT
   MAX(lux) as max_lux,
   AVG(proximity) as avg_proximity,
   MAX(proximity) as max_proximity
-FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=${new Date().getUTCFullYear()}/month=${String(new Date().getUTCMonth() + 1).padStart(2, '0')}/day=${String(new Date().getUTCDate()).padStart(2, '0')}/data_${String(new Date().getUTCHours()).padStart(2, '0')}${String(Math.floor(new Date().getUTCMinutes() / 10) * 10).padStart(2, '0')}.parquet')
+FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=${new Date().getUTCFullYear()}/month=${String(new Date().getUTCMonth() + 1).padStart(2, '0')}/day=${String(new Date().getUTCDate()).padStart(2, '0')}/data_${String(new Date().getUTCHours()).padStart(2, '0')}${String((m => m <= 10 ? 0 : Math.floor((m - 1) / 5) * 5)(new Date().getUTCMinutes())).padStart(2, '0')}.parquet')
+
 ```
 
 <BigValue 
