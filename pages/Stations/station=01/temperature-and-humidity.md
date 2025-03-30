@@ -108,6 +108,15 @@ where humidity = (select max(humidity) from ${main_data})
   chartAreaHeight=250
   xFmt="yyyy-MM-dd HH:mm:ss"
   step=true
+  echartsOptions={{
+      dataZoom: {
+          show: true,
+          bottom: 10
+      },
+      grid: {
+          bottom: 50
+      }
+  }}
 >
   <ReferenceLine y={25} label="Comfort Upper Limit" color=warning lineType=dashed hideValue=true/>
   <ReferenceLine y={18} label="Comfort Lower Limit" color=info lineType=dashed hideValue=true/>
@@ -149,6 +158,15 @@ where humidity = (select max(humidity) from ${main_data})
   xFmt="yyyy-MM-dd HH:mm:ss"
   color=info
   step=true
+  echartsOptions={{
+      dataZoom: {
+          show: true,
+          bottom: 10
+      },
+      grid: {
+          bottom: 50
+      }
+  }}
 >
   <ReferenceLine y={60} label="High Humidity" color=negative lineType=dashed hideValue=true/>
   <ReferenceLine y={30} label="Low Humidity" color=warning lineType=dashed hideValue=true/>
@@ -200,8 +218,8 @@ order by timestamp, metric_type
   x=timestamp
   y=value
   series=metric_type
-  title="Temperature and Humidity Stacked View"
-  subtitle="Combined view showing both metrics"
+  title="Temperature and Humidity Comparison"
+  subtitle="Stacked view of temperature and humidity readings"
   markers=true
   markerSize=3
   lineWidth=2
@@ -209,6 +227,15 @@ order by timestamp, metric_type
   xFmt="yyyy-MM-dd HH:mm:ss"
   yAxisTitle="Value"
   step=true
+  echartsOptions={{
+      dataZoom: {
+          show: true,
+          bottom: 10
+      },
+      grid: {
+          bottom: 50
+      }
+  }}
 >
   <ReferenceLine y={25} label="Temp Comfort Upper" color=warning lineType=dashed hideValue=true/>
   <ReferenceLine y={18} label="Temp Comfort Lower" color=info lineType=dashed hideValue=true/>
