@@ -1,7 +1,3 @@
-```sql near_real_time_data
-SELECT * FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=${new Date().getUTCFullYear()}/month=${String(new Date().getUTCMonth() + 1).padStart(2, '0')}/day=${String(new Date().getUTCDate()).padStart(2, '0')}/data_${String(new Date().getUTCHours()).padStart(2, '0')}${String(Math.floor(new Date().getUTCMinutes() / 10) * 10).padStart(2, '0')}.parquet')
-```
-
 ```sql temperature_stats
 SELECT 
   AVG(temperature) as avg_temp,
@@ -156,12 +152,4 @@ FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realti
   title="Average Proximity"
   fmt="num0"
   description="Average proximity sensor reading. Proximity values range from 0 (no object detected) to 2047 (object very close to sensor)."
-/>
-
-## Raw Data
-
-<DataTable
-  data={near_real_time_data}
-  title="Near Real-Time Weather Data"
-  limit=10
 />
