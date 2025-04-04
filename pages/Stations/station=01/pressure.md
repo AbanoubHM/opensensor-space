@@ -33,7 +33,7 @@ select
   timestamp,
   pressure
 from station_01
-where timestamp::date between '${inputs.date_filter.start}' and '${inputs.date_filter.end}'
+where timestamp::date between '${inputs.date_filter.start}' and ('${inputs.date_filter.end}'::date + INTERVAL '1 day')
 ```
 
 ```sql summary_stats
