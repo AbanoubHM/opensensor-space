@@ -48,6 +48,7 @@ order by 1
   y={["pm1", "pm2_5", "pm10"]}
   title="Hourly Particulate Matter Concentrations"
   yAxisTitle="Concentration (micrograms/m³)"
+  xFmt="MMM dd, HH:mm"
 />
 
 ## Particle Count by Size
@@ -73,6 +74,7 @@ ORDER BY 1
   y={["0.3μm", "0.5μm", "1.0μm"]}
   title="Particle Counts - Small Particles"
   yAxisTitle="Particles per 0.1L of air"
+  xFmt="MMM dd, HH:mm"
 />
 
 ```sql large_particle_counts
@@ -96,6 +98,7 @@ ORDER BY 1
   y={["2.5μm", "5.0μm", "10.0μm"]}
   title="Particle Counts - Large Particles"
   yAxisTitle="Particles per 0.1L of air"
+  xFmt="MMM dd, HH:mm"
 />
 
 ## Daily Average Trends
@@ -121,6 +124,7 @@ order by 1
   y={["pm1", "pm2_5", "pm10"]}
   title="Daily Average Particulate Matter"
   yAxisTitle="Concentration (micrograms/m³)"
+  xFmt="MMM dd, HH:mm"
 />
 
 ## Latest Measurements
@@ -192,6 +196,7 @@ ORDER BY hour
   title="24-Hour Rolling Mean of Particulate Matter"
   subtitle="Each point represents the average over the preceding 24 hours"
   yAxisTitle="Concentration (micrograms/m³)"
+  xFmt="MMM dd, HH:mm"
 >
   <ReferenceArea yMin={0} yMax={12} color="positive" label="Good (PM2.5)" opacity={0.1} labelPosition="right"/>
   <ReferenceArea yMin={12} yMax={35.4} color="warning" label="Moderate (PM2.5)" opacity={0.1} labelPosition="right"/>
@@ -207,16 +212,39 @@ SELECT
   round(avg(pm1), 1) as pm1_mean,
   round(avg(pm2_5), 1) as pm2_5_mean,
   round(avg(pm10), 1) as pm10_mean,
+  pm1_mean || ' μg/m³' as pm1_value,
+  pm2_5_mean || ' μg/m³' as pm2_5_value,
+  pm10_mean || ' μg/m³' as pm10_value,
   CASE
-    WHEN avg(pm2_5) <= 12 AND avg(pm10) <= 20 THEN 'Good'
-    WHEN avg(pm2_5) <= 35.4 AND avg(pm10) <= 50 THEN 'Moderate'
-    WHEN avg(pm2_5) <= 55.4 AND avg(pm10) <= 100 THEN 'Unhealthy for Sensitive Groups'
-    WHEN avg(pm2_5) <= 150.4 AND avg(pm10) <= 200 THEN 'Unhealthy'
-    WHEN avg(pm2_5) <= 250.4 AND avg(pm10) <= 300 THEN 'Very Unhealthy'
-    WHEN avg(pm2_5) > 250.4 OR avg(pm10) > 300 THEN 'Hazardous'
+    WHEN pm2_5_mean <= 12 THEN 'bg-green-50'
+    WHEN pm2_5_mean <= 35.4 THEN 'bg-yellow-50'
+    ELSE 'bg-red-50'
+  END as pm2_5_bg_color,
+  CASE
+    WHEN pm10_mean <= 20 THEN 'bg-green-50'
+    WHEN pm10_mean <= 50 THEN 'bg-yellow-50'
+    ELSE 'bg-red-50'
+  END as pm10_bg_color,
+  CASE
+    WHEN pm1_mean <= 10 THEN 'bg-green-50'
+    WHEN pm1_mean <= 25 THEN 'bg-yellow-50'
+    ELSE 'bg-red-50'
+  END as pm1_bg_color,
+  CASE
+    WHEN pm2_5_mean <= 12 AND pm10_mean <= 20 THEN 'Good'
+    WHEN pm2_5_mean <= 35.4 AND pm10_mean <= 50 THEN 'Moderate'
+    WHEN pm2_5_mean <= 55.4 AND pm10_mean <= 100 THEN 'Unhealthy for Sensitive Groups'
+    WHEN pm2_5_mean <= 150.4 AND pm10_mean <= 200 THEN 'Unhealthy'
+    WHEN pm2_5_mean <= 250.4 AND pm10_mean <= 300 THEN 'Very Unhealthy'
+    WHEN pm2_5_mean > 250.4 OR pm10_mean > 300 THEN 'Hazardous'
     ELSE 'Insufficient Data'
   END as air_quality_category,
-  'Based on 24-hour mean PM2.5 and PM10 values' as aqi_note
+  'Based on 24-hour mean PM2.5 and PM10 values' as aqi_note,
+  CASE
+    WHEN pm2_5_mean <= 12 AND pm10_mean <= 20 THEN 'bg-green-50'
+    WHEN pm2_5_mean <= 35.4 AND pm10_mean <= 50 THEN 'bg-yellow-50'
+    ELSE 'bg-red-50'
+  END as aqi_bg_color
 FROM station_01
 WHERE 
   timestamp >= (SELECT max(timestamp) - INTERVAL '24 hours' FROM station_01)
@@ -226,52 +254,37 @@ WHERE
   data={current_24hr_means}
   value=air_quality_category
   title="Current Air Quality Index (AQI) Category"
-  subtitle="Based on 24-hour mean PM2.5 and PM10 values"
+  subtitle=aqi_note
+  backgroundColor=aqi_bg_color
 />
-
-```sql aqi_card_data
--- Format the mean values for cards with colored indicators
-SELECT
-  pm1_mean,
-  pm2_5_mean,
-  pm10_mean,
-  CASE
-    WHEN pm2_5_mean <= 12 THEN 'positive'
-    WHEN pm2_5_mean <= 35.4 THEN 'warning'
-    ELSE 'negative'
-  END as pm2_5_color,
-  CASE
-    WHEN pm10_mean <= 20 THEN 'positive'
-    WHEN pm10_mean <= 50 THEN 'warning'
-    ELSE 'negative'
-  END as pm10_color
-FROM ${current_24hr_means}
-```
 
 ### 24-Hour Mean Values
 
-<BigValue
-  data={aqi_card_data}
-  value=pm1_mean
-  title="PM1 24hr Mean"
-  subtitle="micrograms/m³"
-/>
+<Grid numCols={3}>
+  <BigValue
+    data={current_24hr_means}
+    value=pm1_value
+    title="PM1 24hr Mean"
+    subtitle="Ultra-fine particles"
+    backgroundColor=pm1_bg_color
+  />
 
-<BigValue
-  data={aqi_card_data}
-  value=pm2_5_mean
-  title="PM2.5 24hr Mean"
-  subtitle="micrograms/m³"
-  color=pm2_5_color
-/>
+  <BigValue
+    data={current_24hr_means}
+    value=pm2_5_value
+    title="PM2.5 24hr Mean"
+    subtitle="Fine inhalable particles"
+    backgroundColor=pm2_5_bg_color
+  />
 
-<BigValue
-  data={aqi_card_data}
-  value=pm10_mean
-  title="PM10 24hr Mean"
-  subtitle="micrograms/m³"
-  color=pm10_color
-/>
+  <BigValue
+    data={current_24hr_means}
+    value=pm10_value
+    title="PM10 24hr Mean"
+    subtitle="Coarse inhalable particles"
+    backgroundColor=pm10_bg_color
+  />
+</Grid>
 
 ```sql hourly_pattern
 -- Calculate average PM levels by hour of day
@@ -296,6 +309,7 @@ ORDER BY hour_of_day
   subtitle="Shows when particulate matter tends to be highest and lowest"
   yAxisTitle="Concentration (micrograms/m³)"
   xAxisTitle="Hour of Day (24h)"
+  xFmt="MMM dd, HH:mm"
 >
   <ReferenceArea yMin=0 yMax=12 color="positive" label="Good (PM2.5)" opacity=0.1 labelPosition="right"/>
   <ReferenceArea yMin=12 yMax=35.4 color="warning" label="Moderate (PM2.5)" opacity=0.1 labelPosition="right"/>

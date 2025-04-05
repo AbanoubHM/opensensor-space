@@ -37,7 +37,7 @@ from station_01
 ## Gas Sensor Readings Summary
 
 ```sql main_data
--- Get the base gas sensor data we need
+-- Get all the base gas sensor data we need
 select
   timestamp,
   oxidised,
@@ -82,6 +82,30 @@ select
   END as nh3_bg_color
 from ${main_data}
 ```
+
+<Grid numCols={3}>
+  <BigValue 
+    data={summary_stats} 
+    value=oxidised_range
+    title="Oxidised Gas Range" 
+    subtitle=oxidised_avg
+    backgroundColor=oxidised_bg_color
+  />
+  <BigValue 
+    data={summary_stats} 
+    value=reducing_range
+    title="Reducing Gas Range" 
+    subtitle=reducing_avg
+    backgroundColor=reducing_bg_color
+  />
+  <BigValue 
+    data={summary_stats} 
+    value=nh3_range
+    title="NH3 Range" 
+    subtitle=nh3_avg
+    backgroundColor=nh3_bg_color
+  />
+</Grid>
 
 ```sql hourly_patterns
 -- Calculate hourly patterns throughout the day
@@ -164,30 +188,6 @@ ORDER BY hour_of_day, gas_type
 
 </Details>
 
-<Grid numCols={3}>
-  <BigValue 
-    data={summary_stats} 
-    value=oxidised_range
-    title="Oxidised Gas Range" 
-    subtitle=oxidised_avg
-    backgroundColor=oxidised_bg_color
-  />
-  <BigValue 
-    data={summary_stats} 
-    value=reducing_range
-    title="Reducing Gas Range" 
-    subtitle=reducing_avg
-    backgroundColor=reducing_bg_color
-  />
-  <BigValue 
-    data={summary_stats} 
-    value=nh3_range
-    title="NH3 Range" 
-    subtitle=nh3_avg
-    backgroundColor=nh3_bg_color
-  />
-</Grid>
-
 ## Time Series Analysis
 
 ```sql time_series_data
@@ -239,15 +239,13 @@ ORDER BY half_hour_timestamp, gas_type
   x=half_hour_timestamp
   y=value
   series=gas_type
-  title="Gas Sensor Readings Over Time"
-  subtitle="30-minute average readings over the selected date range"
+  title="Gas Sensor Readings Over Time (30-min intervals)"
+  subtitle="Average values in 30-minute buckets for smoother visualization"
+  yAxisTitle="Resistance (kΩ)"
   chartAreaHeight=250
-  lineWidth=2
-  markers=true
-  markerSize=4
+  lineWidth=3
   colors={["#e41a1c", "#377eb8", "#4daf4a"]}
   xFmt="MMM dd, HH:mm"
-  yAxisTitle="Resistance (kΩ)"
   echartsOptions={{
       dataZoom: {
           show: true,
@@ -257,185 +255,26 @@ ORDER BY half_hour_timestamp, gas_type
           bottom: 50
       }
   }}
-/>
+>
+  <ReferenceLine y={10} label="Oxidised alert threshold (10kΩ)" color="warning" lineType="dashed"/>
+  <ReferenceLine y={750} label="Reducing alert threshold (750kΩ)" color="warning" lineType="dashed"/>
+  <ReferenceLine y={25} label="NH3 alert threshold (25kΩ)" color="warning" lineType="dashed"/>
+</LineChart>
 
-<Details title='Understanding Gas Sensor Readings'>
+<Details title='About This Chart'>
     
-    Gas sensor readings measure resistance in kiloohms (kΩ), which is inversely related to gas concentration:
+    This chart shows gas sensor readings averaged in 30-minute intervals, providing a smoother view of gas level trends over time.
     
-    - **Oxidised Gas Sensor (MiCS-2710)**:
-      - Detects gases like NO2, O3
-      - Typical baseline: 8-20 kΩ in clean air
-      - Lower values indicate higher gas concentrations
+    - Each point represents the average of all readings within a 30-minute period
+    - Lower resistance values (kΩ) indicate higher gas concentrations
+    - Reference lines show thresholds where gas levels may be of concern:
+      - Oxidised gases (NO2/O3): Below 10 kΩ indicates elevated levels
+      - Reducing gases (CO/VOCs): Below 750 kΩ indicates elevated levels
+      - NH3 (ammonia): Below 25 kΩ indicates elevated levels
     
-    - **Reducing Gas Sensor (MiCS-5525)**:
-      - Detects gases like CO, VOCs
-      - Typical baseline: 100-1500 kΩ in clean air
-      - Lower values indicate higher gas concentrations
-    
-    - **NH3 (Ammonia) Sensor (MICS-6814)**:
-      - Detects ammonia and hydrogen sulfide
-      - Typical baseline: 10-100 kΩ in clean air
-      - Lower values indicate higher gas concentrations
-    
-    Context matters - sudden drops in resistance may indicate air quality events or sensor warm-up periods.
+    Use the zoom control at the bottom to focus on specific time periods of interest.
 
 </Details>
-
-## Individual Gas Analysis
-
-### Oxidised Gas Levels
-
-```sql oxidised_extremes
-select
-  timestamp,
-  oxidised,
-  case
-    when oxidised = (select max(oxidised) from ${main_data})
-    then 'Highest: ' || round(oxidised, 1) || ' kΩ'
-    when oxidised = (select min(oxidised) from ${main_data})
-    then 'Lowest: ' || round(oxidised, 1) || ' kΩ'
-  end as label
-from ${main_data}
-where oxidised = (select max(oxidised) from ${main_data})
-   or oxidised = (select min(oxidised) from ${main_data})
-```
-
-<LineChart
-  data={main_data}
-  x=timestamp
-  y=oxidised
-  yAxisTitle="Oxidised Gases (kΩ)"
-  title="Oxidised Gas Sensor Readings"
-  subtitle="NO2/O3 sensor resistance (lower value = higher concentration)"
-  markers=false
-  lineWidth=2
-  chartAreaHeight=250
-  xFmt="yyyy-MM-dd HH:mm"
-  color=warning
-  echartsOptions={{
-      dataZoom: {
-          show: true,
-          bottom: 10
-      },
-      grid: {
-          bottom: 50
-      }
-  }}
->
-  <ReferencePoint 
-    data={oxidised_extremes} 
-    x=timestamp 
-    y=oxidised 
-    label=label 
-    labelPosition=top 
-    color=negative 
-    symbolSize=8
-  />
-  <ReferenceLine y={10} label="High NO2/O3 level threshold" color=negative lineType=dashed hideValue=true/>
-</LineChart>
-
-### Reducing Gas Levels
-
-```sql reducing_extremes
-select
-  timestamp,
-  reducing,
-  case
-    when reducing = (select max(reducing) from ${main_data})
-    then 'Highest: ' || round(reducing, 1) || ' kΩ'
-    when reducing = (select min(reducing) from ${main_data})
-    then 'Lowest: ' || round(reducing, 1) || ' kΩ'
-  end as label
-from ${main_data}
-where reducing = (select max(reducing) from ${main_data})
-   or reducing = (select min(reducing) from ${main_data})
-```
-
-<LineChart
-  data={main_data}
-  x=timestamp
-  y=reducing
-  yAxisTitle="Reducing Gases (kΩ)"
-  title="Reducing Gas Sensor Readings"
-  subtitle="CO/VOCs sensor resistance (lower value = higher concentration)"
-  markers=false
-  lineWidth=2
-  chartAreaHeight=250
-  xFmt="yyyy-MM-dd HH:mm"
-  color=info
-  echartsOptions={{
-      dataZoom: {
-          show: true,
-          bottom: 10
-      },
-      grid: {
-          bottom: 50
-      }
-  }}
->
-  <ReferencePoint 
-    data={reducing_extremes} 
-    x=timestamp 
-    y=reducing 
-    label=label 
-    labelPosition=top 
-    color=negative 
-    symbolSize=8
-  />
-  <ReferenceLine y={750} label="High CO/VOC level threshold" color=negative lineType=dashed hideValue=true/>
-</LineChart>
-
-### NH3 (Ammonia) Levels
-
-```sql nh3_extremes
-select
-  timestamp,
-  nh3,
-  case
-    when nh3 = (select max(nh3) from ${main_data})
-    then 'Highest: ' || round(nh3, 1) || ' kΩ'
-    when nh3 = (select min(nh3) from ${main_data})
-    then 'Lowest: ' || round(nh3, 1) || ' kΩ'
-  end as label
-from ${main_data}
-where nh3 = (select max(nh3) from ${main_data})
-   or nh3 = (select min(nh3) from ${main_data})
-```
-
-<LineChart
-  data={main_data}
-  x=timestamp
-  y=nh3
-  yAxisTitle="NH3 (kΩ)"
-  title="NH3 (Ammonia) Sensor Readings"
-  subtitle="Ammonia sensor resistance (lower value = higher concentration)"
-  markers=false
-  lineWidth=2
-  chartAreaHeight=250
-  xFmt="yyyy-MM-dd HH:mm"
-  color=success
-  echartsOptions={{
-      dataZoom: {
-          show: true,
-          bottom: 10
-      },
-      grid: {
-          bottom: 50
-      }
-  }}
->
-  <ReferencePoint 
-    data={nh3_extremes} 
-    x=timestamp 
-    y=nh3 
-    label=label 
-    labelPosition=top 
-    color=negative 
-    symbolSize=8
-  />
-  <ReferenceLine y={25} label="High NH3 level threshold" color=negative lineType=dashed hideValue=true/>
-</LineChart>
 
 ## Gas Correlation Analysis
 
@@ -597,3 +436,39 @@ ORDER BY day
     Hover over each day to see the exact values. These visualizations help identify patterns in gas levels over time.
 
 </Details>
+
+## Sensor Statistics
+
+```sql sensor_stats
+select
+  round(avg(oxidised), 1) as avg_oxidised,
+  round(avg(reducing), 1) as avg_reducing,
+  round(avg(nh3), 1) as avg_nh3
+from station_01
+WHERE timestamp::date >= '${inputs.date_filter.start}'::date
+  AND timestamp::date <= '${inputs.date_filter.end}'::date
+```
+
+<Grid numCols={3}>
+  <BigValue 
+    data={sensor_stats} 
+    value=avg_oxidised
+    title="Average Oxidised Gas" 
+    subtitle="Average oxidised gas reading"
+    backgroundColor="bg-blue-50"
+  />
+  <BigValue 
+    data={sensor_stats} 
+    value=avg_reducing
+    title="Average Reducing Gas" 
+    subtitle="Average reducing gas reading"
+    backgroundColor="bg-blue-50"
+  />
+  <BigValue 
+    data={sensor_stats} 
+    value=avg_nh3
+    title="Average NH3" 
+    subtitle="Average NH3 reading"
+    backgroundColor="bg-blue-50"
+  />
+</Grid>
