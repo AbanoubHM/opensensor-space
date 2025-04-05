@@ -34,7 +34,8 @@ SELECT
   round(avg(temperature), 1) as temperature,
   round(avg(humidity), 1) as humidity
 FROM station_01
-where timestamp::date between '${inputs.date_filter.start}' and ('${inputs.date_filter.end}'::date + INTERVAL '1 day')
+WHERE timestamp::date >= '${inputs.date_filter.start}'::date
+  AND timestamp::date <= '${inputs.date_filter.end}'::date
 GROUP BY hour_of_day
 ORDER BY hour_of_day
 ```
@@ -87,12 +88,14 @@ ORDER BY hour_of_day, metric_type
 </LineChart>
 
 <Details title='About Hourly Patterns'>
-  This chart shows the average temperature and humidity for each hour of the day, calculated from all data within your selected date range. 
-  
-  - It always shows hours 0-23 because it's designed to reveal the daily cycle pattern
-  - Values are averaged across all days in your selected period
-  - Use the zoom control at the bottom to focus on specific hours
-  - Temperature and humidity often follow predictable daily patterns that this visualization reveals
+    
+    This chart shows the average temperature and humidity for each hour of the day, calculated from all data within your selected date range. 
+    
+    - It always shows hours 0-23 because it's designed to reveal the daily cycle pattern
+    - Values are averaged across all days in your selected period
+    - Use the zoom control at the bottom to focus on specific hours
+    - Temperature and humidity often follow predictable daily patterns that this visualization reveals
+
 </Details>
 
 ## Key Weather Metrics
@@ -104,7 +107,8 @@ select
   temperature,
   humidity
 from station_01
-where timestamp::date between '${inputs.date_filter.start}' and ('${inputs.date_filter.end}'::date + INTERVAL '1 day')
+WHERE timestamp::date >= '${inputs.date_filter.start}'::date
+  AND timestamp::date <= '${inputs.date_filter.end}'::date
 ```
 
 ```sql time_series_data
@@ -180,7 +184,7 @@ select
     when avg(temperature) > 25 then 'bg-red-50'
     else 'bg-green-50'
   end as temp_bg_color,
-  min(temperature) || ' - ' || max(temperature) || '°C' as temp_range,
+  round(min(temperature), 1) || ' - ' || round(max(temperature), 1) || '°C' as temp_range,
   'Avg: ' || round(avg(temperature), 1) || '°C' as temp_avg
 from ${main_data}
 ```
@@ -195,114 +199,108 @@ select
     when avg(humidity) > 60 then 'bg-blue-50'
     else 'bg-green-50'
   end as humidity_bg_color,
-  min(humidity) || ' - ' || max(humidity) || '%' as humidity_range,
+  round(min(humidity), 1) || ' - ' || round(max(humidity), 1) || '%' as humidity_range,
   'Avg: ' || round(avg(humidity), 1) || '%' as humidity_avg
 from ${main_data}
 ```
 
-<BigValue
-  data={temp_summary}
-  title="Temperature Range"
-  value=temp_range
-  subtitle=temp_avg
-  bold=true
-  backgroundColor=temp_bg_color
-/>
-
-<BigValue
-  data={humidity_summary}
-  title="Humidity Range"
-  value=humidity_range
-  subtitle=humidity_avg
-  bold=true
-  backgroundColor=humidity_bg_color
-/>
+<Grid numCols={2}>
+  <BigValue 
+    data={temp_summary} 
+    value=temp_range 
+    title="Temperature Range" 
+    subtitle=temp_avg
+    backgroundColor=temp_bg_color
+  />
+  <BigValue 
+    data={humidity_summary} 
+    value=humidity_range 
+    title="Humidity Range" 
+    subtitle=humidity_avg
+    backgroundColor=humidity_bg_color
+  />
+</Grid>
 
 ## Temperature and Humidity Correlation
 
-```sql extremes
-select
-  timestamp,
-  temperature,
-  humidity,
-  case
-    when temperature = (select max(temperature) from ${main_data})
-    then 'Highest Temp: ' || round(temperature, 1) || '°C'
-    when temperature = (select min(temperature) from ${main_data})
-    then 'Lowest Temp: ' || round(temperature, 1) || '°C'
-    when humidity = (select max(humidity) from ${main_data})
-    then 'Highest Humidity: ' || round(humidity, 1) || '%'
-    when humidity = (select min(humidity) from ${main_data})
-    then 'Lowest Humidity: ' || round(humidity, 1) || '%'
-  end as label
-from ${main_data}
-where temperature = (select max(temperature) from ${main_data})
-   or temperature = (select min(temperature) from ${main_data})
-   or humidity = (select max(humidity) from ${main_data})
-   or humidity = (select min(humidity) from ${main_data})
-```
-
 ```sql temp_vs_humidity
--- Temperature vs Humidity correlation data
-select 
+-- Get hourly temperature and humidity for the scatter plot
+SELECT 
   date_trunc('hour', timestamp) as hour,
   extract('hour' from timestamp) as hour_of_day,
-  date_trunc('day', timestamp)::string as day,
-  avg(temperature) as temperature,
-  avg(humidity) as humidity
-from ${main_data}
-group by 
+  round(avg(temperature), 1) as temperature,
+  round(avg(humidity), 1) as humidity,
+  -- Add time of day categories for better analysis
+  CASE
+    WHEN extract('hour' from timestamp) >= 6 AND extract('hour' from timestamp) < 12 THEN 'Morning (6-12)'
+    WHEN extract('hour' from timestamp) >= 12 AND extract('hour' from timestamp) < 18 THEN 'Afternoon (12-18)'
+    WHEN extract('hour' from timestamp) >= 18 AND extract('hour' from timestamp) < 22 THEN 'Evening (18-22)'
+    ELSE 'Night (22-6)'
+  END as time_of_day
+FROM station_01
+WHERE timestamp::date >= '${inputs.date_filter.start}'::date
+  AND timestamp::date <= '${inputs.date_filter.end}'::date
+GROUP BY 
   date_trunc('hour', timestamp),
-  extract('hour' from timestamp),
-  date_trunc('day', timestamp)::string
-order by hour
+  extract('hour' from timestamp)
+ORDER BY hour
 ```
 
-```sql regression
--- Calculate regression line for temperature vs humidity
-WITH 
-coeffs AS (
-    SELECT
-        regr_slope(humidity, temperature) AS slope,
-        regr_intercept(humidity, temperature) AS intercept,
-        regr_r2(humidity, temperature) AS r_squared
-    FROM ${temp_vs_humidity}
-)
-
-SELECT 
-    min(temperature) AS x, 
-    max(temperature) AS x2, 
-    min(temperature) * slope + intercept AS y, 
-    max(temperature) * slope + intercept AS y2, 
-    'Trend: ' || ROUND(slope, 2) || 'x + ' || ROUND(intercept, 2) || ' (R² = ' || ROUND(r_squared, 3) || ')' AS label
-FROM coeffs, ${temp_vs_humidity}
-GROUP BY slope, intercept, r_squared
+```sql comfort_zones
+-- Define comfort zones for the scatter plot
+SELECT * FROM (
+  VALUES 
+  (18, 30, 'Too Cold & Dry'),
+  (18, 60, 'Comfortable Temperature, Optimal Humidity'),
+  (18, 100, 'Too Cold & Humid'),
+  (25, 30, 'Optimal Temperature, Too Dry'),
+  (25, 60, 'Ideal Comfort Zone'),
+  (25, 100, 'Optimal Temperature, Too Humid'),
+  (35, 30, 'Too Hot & Dry'),
+  (35, 60, 'Too Hot, Optimal Humidity'),
+  (35, 100, 'Too Hot & Humid')
+) AS t(temp, humidity, zone)
 ```
 
 <ScatterPlot
   data={temp_vs_humidity}
   x=temperature
   y=humidity
-  series=day
+  series=time_of_day
   tooltipTitle=hour
   xAxisTitle="Temperature (°C)"
   yAxisTitle="Humidity (%)"
-  title="Temperature vs Humidity Correlation"
-  subtitle="Each point represents hourly averages, colored by day"
+  title="Temperature and Humidity Relationship"
+  subtitle="Each point represents an hourly average, colored by time of day"
   pointSize=12
   shape="circle"
+  xFmt="0.0"
+  yFmt="0.0"
 >
-  <ReferenceArea xMin={18} xMax={25} yMin={30} yMax={60} label="Comfort Zone" color=positive opacity=0.1 border=true/>
-  <ReferenceLine data={regression} x=x y=y x2=x2 y2=y2 label=label color=base-content-muted lineType=solid/>
-  <Callout x={22} y={75} labelPosition=top labelWidth=150>
-    High humidity with moderate temperature
-    indicates potential discomfort
-  </Callout>
-  <Callout x={15} y={20} labelPosition=bottom labelWidth=150>
-    Low humidity with low temperature
-    can cause dry skin and respiratory issues
-  </Callout>
+  <ReferenceLine x={18} label="Min Comfort Temp" color=info lineType=dashed />
+  <ReferenceLine x={25} label="Max Comfort Temp" color=warning lineType=dashed />
+  <ReferenceLine y={30} label="Min Comfort Humidity" color=warning lineType=dotted />
+  <ReferenceLine y={60} label="Max Comfort Humidity" color=negative lineType=dotted />
 </ScatterPlot>
+
+<Details title='Understanding the Temperature-Humidity Relationship'>
+    
+    This scatter plot reveals important patterns in how temperature and humidity interact in your environment:
+    
+    - **Color Coding**: Points are colored by time of day to help identify patterns in daily cycles
+    - **Comfort Zones**: 
+      - Ideal comfort zone: 18-25°C temperature and 30-60% humidity
+      - Reference lines mark the boundaries of these comfort zones
+    - **Interpretation**:
+      - Points in the top-right are hot and humid (can feel muggy)
+      - Points in the bottom-right are hot and dry (can feel uncomfortable)
+      - Points in the top-left are cool and humid (can feel clammy)
+      - Points in the bottom-left are cool and dry (can feel comfortable or chilly)
+    - **Correlation**: If points trend from bottom-left to top-right, this indicates that temperature and humidity rise together
+      
+    Understanding this relationship helps optimize ventilation and climate control for better comfort.
+
+</Details>
 
 ## Daily Calendar Views
 
@@ -313,8 +311,8 @@ SELECT
   round(avg(temperature), 1) as avg_temp,
   round(avg(humidity), 1) as avg_humidity
 FROM station_01
-WHERE 
-  timestamp::date between '${inputs.date_filter.start}' and ('${inputs.date_filter.end}'::date + INTERVAL '1 day')
+WHERE timestamp::date >= '${inputs.date_filter.start}'::date
+  AND timestamp::date <= '${inputs.date_filter.end}'::date
   AND (temperature IS NOT NULL OR humidity IS NOT NULL)
 GROUP BY day
 ORDER BY day
@@ -354,18 +352,20 @@ ORDER BY day
   />
 </Grid>
 
-<Details title='About Weather Calendar Heatmaps'>
-  These calendar visualizations show daily average temperature and humidity levels. Color intensity represents values according to indoor comfort standards:
-  
-  - **Temperature**: 
-    - Blue: Too cold (below 18°C)
-    - Green: Comfort zone (18-25°C)
-    - Orange/Red: Too hot (above 25°C)
-  
-  - **Humidity**: 
-    - Yellow/Orange: Too dry (below 30%)
-    - Green: Comfort zone (30-60%)
-    - Blue/Purple: Too humid (above 60%)
-  
-  Hover over each day to see the exact values. These visualizations help identify patterns and seasonal changes over time.
+<Details title='About Calendar Views'>
+    
+    These calendar visualizations show daily average temperature and humidity levels. Color intensity represents values according to indoor comfort standards:
+    
+    - **Temperature**: 
+      - Blue: Too cold (below 18°C)
+      - Green: Comfort zone (18-25°C)
+      - Orange/Red: Too hot (above 25°C)
+    
+    - **Humidity**: 
+      - Yellow/Orange: Too dry (below 30%)
+      - Green: Comfort zone (30-60%)
+      - Blue/Purple: Too humid (above 60%)
+    
+    Hover over each day to see the exact values. These visualizations help identify patterns and seasonal changes over time.
+
 </Details>
