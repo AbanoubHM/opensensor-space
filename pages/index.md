@@ -96,7 +96,22 @@ hide_title: false
     </div>
 </Grid>
 
-## The Cloud-Native Approach
+## The Old Approach
+
+When I first built my DIY weather station last year early (2024), I followed a traditional approach - a Raspberry Pi Zero W with an Enviro+ sensor connected to an Intel NUC that served as a data hub. The NUC collected sensor data and stored it in a TimeScaleDB database. It worked, but it wasn't as elegant or efficient as it could be. If the hub disconnected for any reason - like a power outage - I lost all the readings and measurements sent via MQTT from my sensors.
+
+After a year of working with cloud-native technologies, I had a realization: **Why am I using extra energy and resources when my Raspberry Pi Zero W already has WiFi?**
+
+This insight led me to reimagine my weather station with a truly cloud-native approach.
+
+<Image 
+    url="/image.png" 
+    description="My DIY weather station cloud-native diagram"
+    border=true 
+    class="p-2"
+/>
+
+## The Cloud-Native Solution
 
 Explore the parquet files using DuckDB:
 ```sql
@@ -134,21 +149,6 @@ SUMMARIZE SELECT * FROM station_01
   <Column id="count" title="# Readings" width={100} contentType="colorscale" colorScale="#90caf9" />
 </DataTable>
 
-When I first built my DIY weather station last year early (2024), I followed a traditional approach - a Raspberry Pi Zero W with an Enviro+ sensor connected to an Intel NUC that served as a data hub. The NUC collected sensor data and stored it in a TimeScaleDB database. It worked, but it wasn't as elegant or efficient as it could be. If the hub disconnected for any reason - like a power outage - I lost all the readings and measurements sent via MQTT from my sensors.
-
-After a year of working with cloud-native technologies, I had a realization: **Why am I using extra energy and resources when my Raspberry Pi Zero W already has WiFi?**
-
-This insight led me to reimagine my weather station with a truly cloud-native approach.
-
-<Image 
-    url="/image.png" 
-    description="My DIY weather station cloud-native diagram"
-    border=true 
-    class="p-2"
-/>
-
-## The Cloud-Native Solution
-
 Instead of relying on a local database server, I now stream sensor measurements directly from the Raspberry Pi to cloud storage in **Parquet** format. This approach eliminates unnecessary infrastructure while maintaining all the functionality I need.
 
 The current implementation:
@@ -156,7 +156,7 @@ The current implementation:
 1. A Python script runs as a **cron job** every 5 minutes on the Raspberry Pi
 2. Each Parquet file contains 1-second interval measurements from the Enviro+ sensor
 3. Files are stored in a partitioned format for near real-time dashboarding:
-   ```
+   ```sql
    station={STATION_ID}/year={year}/month={month}/day={day}/data_{time}.parquet
    ```
 4. A GitHub Actions workflow runs daily to aggregate the small 5-minute files into consolidated daily files, making queries more efficient and reducing the number of small files
