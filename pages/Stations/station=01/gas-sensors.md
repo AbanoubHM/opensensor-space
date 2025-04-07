@@ -44,8 +44,8 @@ select
   reducing,
   nh3
 from station_01
-WHERE timestamp::date >= '${inputs.date_filter.start}'::date
-  AND timestamp::date <= '${inputs.date_filter.end}'::date
+WHERE timestamp::date >= '${inputs.date_filter.start}'::date + interval '1 day'
+  AND timestamp::date <= '${inputs.date_filter.end}'::date + interval '1 day'
 ```
 
 ```sql summary_stats
@@ -115,8 +115,8 @@ SELECT
   round(avg(reducing), 1) as reducing,
   round(avg(nh3), 1) as nh3
 FROM station_01
-WHERE timestamp::date >= '${inputs.date_filter.start}'::date
-  AND timestamp::date <= '${inputs.date_filter.end}'::date
+WHERE timestamp::date >= '${inputs.date_filter.start}'::date + interval '1 day'
+  AND timestamp::date <= '${inputs.date_filter.end}'::date + interval '1 day'
 GROUP BY hour_of_day
 ORDER BY hour_of_day
 ```
@@ -294,8 +294,8 @@ SELECT
     ELSE 'Night (22-6)'
   END as time_of_day
 FROM station_01
-WHERE timestamp::date >= '${inputs.date_filter.start}'::date
-  AND timestamp::date <= '${inputs.date_filter.end}'::date
+WHERE timestamp::date >= '${inputs.date_filter.start}'::date + interval '1 day'
+  AND timestamp::date <= '${inputs.date_filter.end}'::date + interval '1 day'
 GROUP BY 
   date_trunc('hour', timestamp),
   extract('hour' from timestamp)
@@ -363,8 +363,8 @@ SELECT
   round(avg(reducing), 1) as avg_reducing,
   round(avg(nh3), 1) as avg_nh3
 FROM station_01
-WHERE timestamp::date >= '${inputs.date_filter.start}'::date
-  AND timestamp::date <= '${inputs.date_filter.end}'::date
+WHERE timestamp::date >= '${inputs.date_filter.start}'::date + interval '1 day'
+  AND timestamp::date <= '${inputs.date_filter.end}'::date + interval '1 day'
   AND (oxidised IS NOT NULL OR reducing IS NOT NULL OR nh3 IS NOT NULL)
 GROUP BY day
 ORDER BY day
