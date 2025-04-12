@@ -340,12 +340,14 @@ ORDER BY day
   title="Daily Temperature Levels"
   subtitle="Calendar view showing daily average temperature"
   colorScale={[
-    ["rgb(0, 0, 255)", "rgb(173, 216, 230)"],  // Cold: Dark blue to light blue (below 18°C)
-    ["rgb(0, 128, 0)", "rgb(144, 238, 144)"],  // Comfort zone: Dark green to light green (18-25°C)
-    ["rgb(255, 165, 0)", "rgb(255, 0, 0)"]     // Hot: Orange to red (above 25°C)
+    ["rgb(0, 0, 255)"],  // Cold: Dark blue to light blue (below 18°C)
+    ["rgb(52, 194, 255)"],     // Hot: Orange (to 25°C)
+    ["rgb(0, 128, 0)"],  // Comfort zone: Dark green to light green (18-25°C)
+    ["rgb(255, 165, 0)"],     // Very hot: Orange (above 25°C)
+    ["rgb(255, 0, 0)"]     // Very hot: Red (above 25°C)
   ]}
-  min=10
-  max=30
+  min=-20
+  max=50
   valueFmt="0.0"
 />
 
