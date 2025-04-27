@@ -111,7 +111,7 @@ SELECT
     WHEN AVG(pm1) <= 25 THEN 'bg-yellow-50'
     ELSE 'bg-red-50'
   END as pm1_bg_color
-FROM read_parquet('https://data.source.coop/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=${new Date().getUTCFullYear()}/month=${String(new Date().getUTCMonth() + 1).padStart(2, '0')}/day=${String(new Date().getUTCDate()).padStart(2, '0')}/data_${String(new Date().getUTCHours()).padStart(2, '0')}${String((m => m <= 10 ? 0 : Math.floor((m - 1) / 5) * 5)(new Date().getUTCMinutes())).padStart(2, '0')}.parquet')
+FROM read_parquet('https://us-west-2.opendata.source.coop.s3.amazonaws.com/youssef-harby/weather-station-realtime-parquet/parquet/station=01/year=${new Date().getUTCFullYear()}/month=${String(new Date().getUTCMonth() + 1).padStart(2, '0')}/day=${String(new Date().getUTCDate()).padStart(2, '0')}/data_${String(new Date().getUTCHours()).padStart(2, '0')}${String((m => m <= 10 ? 0 : Math.floor((m - 1) / 5) * 5)(new Date().getUTCMinutes())).padStart(2, '0')}.parquet')
 
 ```
 
