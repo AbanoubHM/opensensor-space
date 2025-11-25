@@ -9,8 +9,32 @@ opensensor.space is designed to be easily replicated and expanded into a communi
 
 1. **Deploy your sensors** - Follow the setup instructions below for the reference implementation, or adapt to your sensor hardware
 2. **Choose your storage** - Use [Source Cooperative](https://source.coop) for open data or your own S3-compatible storage
-3. **Submit a PR** - Add your sensor deployment to the network with station ID (UUID), sensor type, location coordinates, and storage URL
+3. **Register your station** - Use our simple registration form to add your station to the network
 4. **Share your insights** - Contribute dashboard improvements, custom visualizations, or reference implementations for new sensor types
+
+## Register Your Station
+
+Ready to add your sensor station to the network? Use our registration form to submit your station details. You'll need a GitHub account to authenticate.
+
+<a href="/admin/" target="_blank" class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 no-underline">
+  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+  </svg>
+  Register New Station
+</a>
+
+<Details title="What information do I need to register?">
+
+To register your station, you'll need:
+- **Station Name**: A friendly name for your station
+- **Sensor Type**: The type of sensor hardware (Enviro+, custom, etc.)
+- **Station Type**: Indoor, Outdoor, or Moving
+- **Location**: Coordinates on a map (click to place marker)
+- **Storage URL**: Your S3-compatible storage path where data is stored
+
+The registration creates a pull request that our team reviews before adding your station to the network.
+
+</Details>
 
 ## Benefits of Contributing
 
@@ -130,7 +154,7 @@ The opensensor-space-edge repository provides a reference implementation for sen
 
 **Custom Implementations:** You can adapt this pattern to any programming language (Python, JavaScript, Rust, C++) and any sensor protocol (I2C, SPI, Modbus, UART, etc.). The core principle remains: collect data locally in Parquet format, then batch sync to object storage.
 
-After your sensor deployment is up and running, you can send an email with your deployment info to hi@walkthru.earth and we will add it to the sensors_db.parquet registry for network-wide discovery and visualization.
+After your sensor deployment is up and running, use the **Register New Station** button above to add your station to the network. Your submission will be reviewed and added to the dashboard.
 
 ### Data Structure Guidelines
 
