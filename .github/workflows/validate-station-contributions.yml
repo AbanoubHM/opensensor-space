@@ -1,12 +1,12 @@
 # Validate and process station contributions from Decap CMS
-# Triggers on PRs to contributions-clean branch (from Open Authoring)
+# Triggers on PRs to contributions branch (from Open Authoring)
 
 name: Validate Station Contributions
 
 on:
   pull_request_target:
     branches:
-      - contributions-clean
+      - contributions
     paths:
       - 'content/stations/**'
 

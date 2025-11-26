@@ -6,7 +6,7 @@ name: Process Approved Stations
 on:
   push:
     branches:
-      - contributions-clean
+      - contributions
     paths:
       - 'content/stations/**'
 
@@ -18,10 +18,10 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout contributions-clean
+      - name: Checkout contributions
         uses: actions/checkout@v4
         with:
-          ref: contributions-clean
+          ref: contributions
           fetch-depth: 0
 
       - name: Fetch stations.csv from main
@@ -107,13 +107,13 @@ jobs:
 
           # Copy the updated stations.csv
           mkdir -p sources/stations
-          git checkout contributions-clean -- sources/stations/stations.csv 2>/dev/null || cp sources/stations/stations.csv sources/stations/
+          git checkout contributions -- sources/stations/stations.csv 2>/dev/null || cp sources/stations/stations.csv sources/stations/
 
           # Commit changes
           git add sources/stations/stations.csv
           git commit -m "feat(stations): add approved station contributions
 
-          Auto-merged from contributions-clean branch"
+          Auto-merged from contributions branch"
 
           # Push and create PR
           git push origin HEAD

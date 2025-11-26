@@ -4,7 +4,7 @@
 backend:
   name: github
   repo: walkthru-earth/opensensor-space
-  branch: contributions-clean
+  branch: contributions
   base_url: https://opensensor-auth.walkthru-earth.workers.dev
   open_authoring: true
 

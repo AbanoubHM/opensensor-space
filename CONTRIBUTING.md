@@ -12,7 +12,7 @@
 ```mermaid
 flowchart LR
     A[User] -->|1. Submit Form| B[Decap CMS]
-    B -->|2. Creates PR| C[contributions-clean branch]
+    B -->|2. Creates PR| C[contributions branch]
     C -->|3. Triggers| D[Validation Workflow]
     D -->|4. S3 Check| E[Auto-comment on PR]
     E -->|5. Admin Review| F[Merge to main]
@@ -31,7 +31,7 @@ sequenceDiagram
 
     U->>CMS: Submit station form
     CMS->>Fork: Create MD file in fork
-    Fork->>PR: Create PR to contributions-clean
+    Fork->>PR: Create PR to contributions
     PR->>GH: Trigger validation
     GH->>S3: aws s3 ls --no-sign-request
     S3-->>GH: ✓ Files exist
@@ -44,15 +44,14 @@ sequenceDiagram
 | Branch | Purpose |
 |--------|---------|
 | `main` | Production - Evidence dashboard |
-| `contributions-clean` | CMS submissions (YAML files) |
+| `contributions` | CMS submissions (YAML files) |
 
 ## Files
 
 | File | Description |
 |------|-------------|
-| `content/stations/*.yml` | Station submissions (on contributions-clean) |
+| `content/stations/*.md` | Station submissions (on contributions) |
 | `sources/stations/stations.csv` | Station registry (on main) |
-| `scripts/merge-station-contributions.sql` | DuckDB script to merge YAML → CSV |
 
 ## Station Status
 
